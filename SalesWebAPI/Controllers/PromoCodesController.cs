@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SalesWebAPI;
+using SalesWebAPI.Dtos;
 using SalesWebAPI.Models;
 
 namespace SalesWebAPI.Controllers
@@ -22,7 +23,7 @@ namespace SalesWebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PromoCode>> GetPromoCode()
+        public async Task<ActionResult<PromoCodeDto>> GetPromoCode()
         {
             var promoCode = new PromoCode()
             {
@@ -33,18 +34,29 @@ namespace SalesWebAPI.Controllers
             _context.PromoCodes.Add(promoCode);
             await _context.SaveChangesAsync();
 
-            return promoCode;
+            var promoCodeDto = new PromoCodeDto()
+            {
+                Id = promoCode.Id,
+                Code = promoCode.Code,
+                Status = promoCode.Status.Status
+            };
+
+            return promoCodeDto;
         }
 
         [HttpGet("{code}")]
-        public async Task<ActionResult<PromoCode>> GetPromoCode(string code)
+        public async Task<ActionResult<PromoCodeDto>> GetPromoCode(string code)
         {
-            var promoCode = await _context.PromoCodes.Where(x => x.Code == code).FirstOrDefaultAsync();
+            var promoCodeDto = await _context.PromoCodes.Join(_context.PromoCodeStatuses, x => x.Status.Id, y => y.Id, (x, y) => new PromoCodeDto() {
+                Id = x.Id,
+                Code = x.Code,
+                Status = y.Status
+            }).Where(x => x.Code == code).FirstOrDefaultAsync();
 
-            if (promoCode == null)
+            if (promoCodeDto == null)
                 return NotFound();
 
-            return promoCode;
+            return promoCodeDto;
         }
 
         private string GeneratePromoCode()

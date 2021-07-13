@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SalesWebAPI;
@@ -9,9 +10,10 @@ using SalesWebAPI;
 namespace SalesWebAPI.Migrations
 {
     [DbContext(typeof(PostgresContext))]
-    partial class PostgresContextModelSnapshot : ModelSnapshot
+    [Migration("20210713065846_ChangePromoCodeBook")]
+    partial class ChangePromoCodeBook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -71,18 +73,11 @@ namespace SalesWebAPI.Migrations
 
             modelBuilder.Entity("SalesWebAPI.Models.PromoCodeBook", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
                     b.Property<int>("BookId")
                         .HasColumnType("integer");
 
                     b.Property<int>("PromoCodeId")
                         .HasColumnType("integer");
-
-                    b.HasKey("Id");
 
                     b.HasIndex("BookId");
 

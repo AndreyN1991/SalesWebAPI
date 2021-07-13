@@ -4,14 +4,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SalesWebAPI.Models
 {
-    [Keyless]
     public class PromoCodeBook
     {
         [Key]
-        [Column(Order = 1)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+        [ForeignKey("PromoCode")]
+        public int PromoCodeId { get; set; }
         public PromoCode PromoCode { get; set; }
-        [Key]
-        [Column(Order = 2)]
+        [ForeignKey("Book")]
+        public int BookId { get; set; }
         public Book Book { get; set; }
     }
 }
