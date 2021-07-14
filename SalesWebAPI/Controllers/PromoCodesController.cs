@@ -38,7 +38,8 @@ namespace SalesWebAPI.Controllers
             {
                 Id = promoCode.Id,
                 Code = promoCode.Code,
-                Status = promoCode.Status.Status
+                Status = promoCode.Status.Status,
+                URL = promoCode.URL
             };
 
             return promoCodeDto;
@@ -50,11 +51,31 @@ namespace SalesWebAPI.Controllers
             var promoCodeDto = await _context.PromoCodes.Join(_context.PromoCodeStatuses, x => x.Status.Id, y => y.Id, (x, y) => new PromoCodeDto() {
                 Id = x.Id,
                 Code = x.Code,
-                Status = y.Status
+                Status = y.Status,
+                URL = x.URL
             }).Where(x => x.Code == code).FirstOrDefaultAsync();
 
             if (promoCodeDto == null)
                 return NotFound();
+
+            return promoCodeDto;
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<PromoCodeDto>> CheckoutPromoCode(int id)
+        {
+            var promoCode = await _context.PromoCodes.FindAsync(id);
+            promoCode.StatusId = 2;
+
+            await _context.SaveChangesAsync();
+
+            var promoCodeDto = await _context.PromoCodes.Join(_context.PromoCodeStatuses, x => x.Status.Id, y => y.Id, (x, y) => new PromoCodeDto()
+            {
+                Id = x.Id,
+                Code = x.Code,
+                Status = y.Status,
+                URL = x.URL
+            }).Where(x => x.Id == id).FirstOrDefaultAsync();
 
             return promoCodeDto;
         }

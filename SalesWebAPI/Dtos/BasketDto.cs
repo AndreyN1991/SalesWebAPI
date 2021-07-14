@@ -5,14 +5,12 @@ using System.Threading.Tasks;
 
 namespace SalesWebAPI.Dtos
 {
-    public class BookDto
+    public class BasketDto
     {
-        public int Id { get; set; }
+        public int PromoCodeBookId { get; set; }
+        public int BookId { get; set; }
         public string Title { get; set; }
         public string Author { get; set; }
-        public string ISBN { get; set; }
-        public string Picture { get; set; }
         public decimal Cost { get; set; }
-        public int BookCount { get; set; }
     }
 }

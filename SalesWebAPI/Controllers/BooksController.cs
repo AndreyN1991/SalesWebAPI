@@ -23,48 +23,80 @@ namespace SalesWebAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooks()
+        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
         {
-            return await _context.Books.ToListAsync();
+            return await _context.Books.Select(x => new BookDto()
+            {
+                Title = x.Title,
+                Author = x.Author,
+                Id = x.Id,
+                BookCount = x.BookCount,
+                Cost = x.Cost,
+                ISBN = x.ISBN,
+                Picture = x.Picture
+            }).ToListAsync();
         }
 
         [HttpGet("{code}")]
-        public async Task<ActionResult<IEnumerable<Book>>> GetBooks(string code)
+        public async Task<ActionResult<IEnumerable<BasketDto>>> GetBooks(string code)
         {
             var promoCode = await _context.PromoCodes.Where(x => x.Code == code).FirstOrDefaultAsync();
 
             if (promoCode == null)
                 return NotFound();
 
-            return await _context.PromoCodeBooks.Where(x => x.PromoCodeId == promoCode.Id).Join(_context.Books, x => x.BookId, y => y.Id, (x, y) => y).ToListAsync();
+            return await _context.PromoCodeBooks.Where(x => x.PromoCodeId == promoCode.Id).Join(_context.Books, x => x.BookId, y => y.Id, (x, y) => new BasketDto() {
+                PromoCodeBookId = x.Id,
+                BookId = y.Id,
+                Author = y.Author,
+                Cost = y.Cost,
+                Title = y.Title
+            }).ToListAsync();
         }
 
         [HttpPost]
-        public async Task<ActionResult<PromoCodeBook>> PostBook(PromoCodeBookDto promoCodeBook)
+        public async Task<ActionResult<PromoCodeBookDto>> PostBook(PromoCodeBookDto promoCodeBook)
         {
             var codeBook = new PromoCodeBook()
             {
                 BookId = promoCodeBook.BookId,
                 PromoCodeId = promoCodeBook.PromoCodeId
             };
+
+            var book = await _context.Books.FindAsync(codeBook.BookId);
+            book.BookCount--;
+
             _context.PromoCodeBooks.Add(codeBook);
             await _context.SaveChangesAsync();
 
-            return codeBook;
+            return new PromoCodeBookDto()
+            {
+                BookId = codeBook.BookId,
+                PromoCodeId = codeBook.PromoCodeId
+            };
         }
 
-        [HttpDelete]
-        public async Task<ActionResult<PromoCodeBook>> DeleteBook(PromoCodeBookDto promoCodeBook)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<PromoCodeBookDto>> DeleteBook(int id)
         {
-            var codeBook = await _context.PromoCodeBooks.Where(x => x.BookId == promoCodeBook.BookId && x.PromoCodeId == promoCodeBook.PromoCodeId).FirstOrDefaultAsync();
+            var codeBook = await _context.PromoCodeBooks.FindAsync(id);
 
-            if (codeBook != null)
+            if (codeBook == null)
             {
-                _context.PromoCodeBooks.Remove(codeBook);
-                await _context.SaveChangesAsync();
+                return NotFound();
             }
 
-            return codeBook;
+            var book = await _context.Books.FindAsync(codeBook.BookId);
+            book.BookCount++;
+
+            _context.PromoCodeBooks.Remove(codeBook);
+            await _context.SaveChangesAsync();
+
+            return new PromoCodeBookDto()
+            {
+                BookId = codeBook.BookId,
+                PromoCodeId = codeBook.PromoCodeId
+            };
         }
     }
 }
